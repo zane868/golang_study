@@ -73,6 +73,7 @@ func LongestCommonPrefix(strs []string) string {
 	first := strs[0]
 
 	for i := 1; i < len(strs); i++ {
+		fmt.Println("first:", first, "strs[i]:", strs[i])
 		for j := 0; j < len(first) && j < len(strs[i]); j++ {
 			if first[j] != strs[i][j] {
 				first = first[:j]
