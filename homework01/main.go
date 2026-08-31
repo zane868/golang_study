@@ -32,7 +32,7 @@ func FindOnlyOne(arr []int) []int {
 // 判断是否回文数
 func PalindromicNumber(num int) bool {
 	numStr := strconv.Itoa(num)
-	reverseResult := Reverse(numStr)
+	reverseResult := reverse(numStr)
 
 	return reverseResult == numStr
 }
@@ -64,7 +64,27 @@ func ValidParentheses(str string) bool {
 	return stack.IsEmpty()
 }
 
-func Reverse(s string) string {
+// 最长前缀
+func LongestCommonPrefix(strs []string) string {
+
+	if len(strs) == 0 {
+		return ""
+	}
+	first := strs[0]
+
+	for i := 1; i < len(strs); i++ {
+		for j := 0; j < len(first) && j < len(strs[i]); j++ {
+			if first[j] != strs[i][j] {
+				first = first[:j]
+				break
+			}
+		}
+	}
+	return first
+}
+
+// 反转字符串
+func reverse(s string) string {
 	r := []rune(s)
 	for i, j := 0, len(r)-1; i < j; i, j = i+1, j-1 {
 		r[i], r[j] = r[j], r[i]
