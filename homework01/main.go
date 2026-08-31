@@ -82,6 +82,22 @@ func LongestCommonPrefix(strs []string) string {
 	return first
 }
 
+// 加一
+func plusOne(digits []int) []int {
+
+	for i := len(digits) - 1; i >= 0; i-- {
+
+		if digits[i] < 9 {
+			digits[i]++
+			return digits
+		}
+
+		digits[i] = 0
+	}
+
+	return append([]int{1}, digits...)
+}
+
 // 反转字符串
 func reverse(s string) string {
 	r := []rune(s)

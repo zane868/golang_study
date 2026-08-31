@@ -80,3 +80,25 @@ func TestLongestCommonPrefix(t *testing.T) {
 		})
 	}
 }
+
+func TestPlusOne(t *testing.T) {
+	tests := []struct {
+		name string
+		in   []int
+		want []int
+	}{
+		{name: "normal increment", in: []int{1, 2, 3}, want: []int{1, 2, 4}},
+		{name: "carry", in: []int{9}, want: []int{1, 0}},
+		{name: "multi carry", in: []int{9, 9, 9}, want: []int{1, 0, 0, 0}},
+		{name: "no carry", in: []int{1, 9, 9}, want: []int{2, 0, 0}},
+		{name: "empty", in: []int{}, want: []int{1}},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := plusOne(tt.in); !reflect.DeepEqual(got, tt.want) {
+				t.Fatalf("plusOne(%v) = %v, want %v", tt.in, got, tt.want)
+			}
+		})
+	}
+}
