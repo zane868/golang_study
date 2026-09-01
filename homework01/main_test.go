@@ -102,3 +102,26 @@ func TestPlusOne(t *testing.T) {
 		})
 	}
 }
+
+func TestRemoveDuplicates(t *testing.T) {
+	tests := []struct {
+		name string
+		in   []int
+		want int
+	}{
+		{name: "empty", in: []int{}, want: 0},
+		{name: "single number", in: []int{7}, want: 1},
+		{name: "no duplicates", in: []int{1, 2, 3}, want: 3},
+		{name: "with duplicates", in: []int{1, 1, 2}, want: 2},
+		{name: "all same", in: []int{1, 1, 1, 1}, want: 1},
+		{name: "multiple duplicates", in: []int{0, 0, 1, 1, 2, 2, 3}, want: 4},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := removeDuplicates(tt.in); got != tt.want {
+				t.Fatalf("removeDuplicates(%v) = %d, want %d", tt.in, got, tt.want)
+			}
+		})
+	}
+}

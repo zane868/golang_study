@@ -106,3 +106,25 @@ func reverse(s string) string {
 	}
 	return string(r)
 }
+
+// 删除有序数组中的重复项
+func removeDuplicates(nums []int) int {
+	fmt.Println("removeDuplicates nums:", nums)
+
+	if len(nums) == 0 {
+		return 0
+	}
+	result := []int{}
+	for i := 0; i < len(nums); i++ {
+		nextIndex := i + 1
+		if nextIndex >= len(nums) {
+			result = append(result, nums[i])
+			break
+		}
+		if nums[i] != nums[nextIndex] {
+			result = append(result, nums[i])
+		}
+	}
+	fmt.Println("result", result)
+	return len(result)
+}
