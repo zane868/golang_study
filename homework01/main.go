@@ -7,6 +7,7 @@ import (
 )
 
 func main() {
+	Merge([][]int{{2, 6}, {1, 3}, {8, 10}, {15, 18}})
 	fmt.Println("test run main_test.go check result")
 }
 
@@ -127,4 +128,36 @@ func removeDuplicates(nums []int) int {
 	}
 	fmt.Println("result", result)
 	return len(result)
+}
+
+// 区间合并
+func Merge(intervals [][]int) [][]int {
+	fmt.Println("intervals", intervals)
+
+	if len(intervals) == 0 {
+		return intervals
+	}
+
+	sort.Slice(intervals, func(i, j int) bool {
+		return intervals[i][0] < intervals[j][0]
+	})
+
+	fmt.Println(intervals)
+
+	//默认把第一个区间加入结果集
+	result := [][]int{intervals[0]}
+	fmt.Println("result", result)
+
+	for i := 1; i < len(intervals); i++ {
+		current := intervals[i]
+		last := result[len(result)-1]
+
+		if last[1] >= current[0] {
+			result[len(result)-1][1] = max(last[1], current[1])
+		} else {
+			result = append(result, current)
+		}
+	}
+
+	return result
 }

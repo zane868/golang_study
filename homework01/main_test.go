@@ -125,3 +125,24 @@ func TestRemoveDuplicates(t *testing.T) {
 		})
 	}
 }
+
+func TestMerge(t *testing.T) {
+	tests := []struct {
+		name string
+		in   [][]int
+		want [][]int
+	}{
+		{name: "overlap", in: [][]int{{1, 3}, {2, 6}, {8, 10}, {15, 18}}, want: [][]int{{1, 6}, {8, 10}, {15, 18}}},
+		{name: "adjacent", in: [][]int{{1, 2}, {2, 3}, {4, 5}}, want: [][]int{{1, 3}, {4, 5}}},
+		{name: "disjoint", in: [][]int{{1, 2}, {4, 5}, {7, 8}}, want: [][]int{{1, 2}, {4, 5}, {7, 8}}},
+		{name: "empty", in: [][]int{}, want: [][]int{}},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := Merge(tt.in); !reflect.DeepEqual(got, tt.want) {
+				t.Fatalf("Merge(%v) = %v, want %v", tt.in, got, tt.want)
+			}
+		})
+	}
+}
