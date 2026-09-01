@@ -29,16 +29,16 @@ func FindOnlyOne(arr []int) []int {
 	return result
 }
 
-// 判断是否回文数
-func PalindromicNumber(num int) bool {
+// IsPalindromicNumber 判断是否回文数
+func IsPalindromicNumber(num int) bool {
 	numStr := strconv.Itoa(num)
 	reverseResult := reverse(numStr)
 
 	return reverseResult == numStr
 }
 
-// 有效的括号
-func ValidParentheses(str string) bool {
+// IsValidParentheses 判断是否为有效的括号字符串
+func IsValidParentheses(str string) bool {
 	r := []rune(str)
 	stack := &Stack{}
 	pairs := map[rune]rune{
@@ -82,8 +82,8 @@ func LongestCommonPrefix(strs []string) string {
 	return first
 }
 
-// 加一
-func plusOne(digits []int) []int {
+// PlusOne 对数组表示的非负整数执行加一
+func PlusOne(digits []int) []int {
 
 	for i := len(digits) - 1; i >= 0; i-- {
 
@@ -107,8 +107,8 @@ func reverse(s string) string {
 	return string(r)
 }
 
-// 删除有序数组中的重复项
-func removeDuplicates(nums []int) int {
+// RemoveDuplicates 删除有序数组中的重复项
+func RemoveDuplicates(nums []int) int {
 	fmt.Println("removeDuplicates nums:", nums)
 
 	if len(nums) == 0 {

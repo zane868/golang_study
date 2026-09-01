@@ -16,7 +16,7 @@ func TestFindOnlyOne(t *testing.T) {
 	}
 }
 
-func TestPalindromicNumber(t *testing.T) {
+func TestIsPalindromicNumber(t *testing.T) {
 	tests := []struct {
 		name string
 		num  int
@@ -29,14 +29,14 @@ func TestPalindromicNumber(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := PalindromicNumber(tt.num); got != tt.want {
-				t.Fatalf("PalindromicNumber(%d) = %v, want %v", tt.num, got, tt.want)
+			if got := IsPalindromicNumber(tt.num); got != tt.want {
+				t.Fatalf("IsPalindromicNumber(%d) = %v, want %v", tt.num, got, tt.want)
 			}
 		})
 	}
 }
 
-func TestValidParentheses(t *testing.T) {
+func TestIsValidParentheses(t *testing.T) {
 	tests := []struct {
 		name string
 		in   string
@@ -53,8 +53,8 @@ func TestValidParentheses(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := ValidParentheses(tt.in); got != tt.want {
-				t.Fatalf("ValidParentheses(%q) = %v, want %v", tt.in, got, tt.want)
+			if got := IsValidParentheses(tt.in); got != tt.want {
+				t.Fatalf("IsValidParentheses(%q) = %v, want %v", tt.in, got, tt.want)
 			}
 		})
 	}
@@ -96,8 +96,8 @@ func TestPlusOne(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := plusOne(tt.in); !reflect.DeepEqual(got, tt.want) {
-				t.Fatalf("plusOne(%v) = %v, want %v", tt.in, got, tt.want)
+			if got := PlusOne(tt.in); !reflect.DeepEqual(got, tt.want) {
+				t.Fatalf("PlusOne(%v) = %v, want %v", tt.in, got, tt.want)
 			}
 		})
 	}
@@ -119,8 +119,8 @@ func TestRemoveDuplicates(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := removeDuplicates(tt.in); got != tt.want {
-				t.Fatalf("removeDuplicates(%v) = %d, want %d", tt.in, got, tt.want)
+			if got := RemoveDuplicates(tt.in); got != tt.want {
+				t.Fatalf("RemoveDuplicates(%v) = %d, want %d", tt.in, got, tt.want)
 			}
 		})
 	}
