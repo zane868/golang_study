@@ -7,8 +7,7 @@ import (
 )
 
 func main() {
-	Merge([][]int{{2, 6}, {1, 3}, {8, 10}, {15, 18}})
-	fmt.Println("test run main_test.go check result")
+	fmt.Println("run main_test.go check result")
 }
 
 // FindOnlyOne 找出只出现一次的数字
@@ -160,4 +159,33 @@ func Merge(intervals [][]int) [][]int {
 	}
 
 	return result
+}
+
+// 两数之和，暴力循环算差值
+func TwoSum(nums []int, target int) []int {
+	for i := 0; i < len(nums); i++ {
+		targetNum := target - nums[i]
+		for j := i + 1; j < len(nums); j++ {
+			if nums[j] == targetNum {
+				return []int{i, j}
+			}
+		}
+	}
+	return []int{}
+
+}
+
+// 两数之和 解法2
+func TwoSum2(nums []int, target int) []int {
+
+	seen := make(map[int]int)
+	for i := 0; i < len(nums); i++ {
+		need := target - nums[i]
+		if j, ok := seen[need]; ok {
+			return []int{j, i}
+		}
+		seen[nums[i]] = i
+	}
+	return []int{}
+
 }

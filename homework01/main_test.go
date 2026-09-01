@@ -146,3 +146,47 @@ func TestMerge(t *testing.T) {
 		})
 	}
 }
+
+func TestTwoSum2(t *testing.T) {
+	tests := []struct {
+		name   string
+		input  []int
+		target int
+		want   []int
+	}{
+		{name: "example", input: []int{2, 7, 11, 15}, target: 9, want: []int{0, 1}},
+		{name: "duplicate values", input: []int{3, 3}, target: 6, want: []int{0, 1}},
+		{name: "no solution", input: []int{1, 2, 3}, target: 10, want: []int{}},
+		{name: "single element", input: []int{5}, target: 10, want: []int{}},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := TwoSum2(tt.input, tt.target); !reflect.DeepEqual(got, tt.want) {
+				t.Fatalf("TwoSum2(%v, %d) = %v, want %v", tt.input, tt.target, got, tt.want)
+			}
+		})
+	}
+}
+
+func TestTwoSum(t *testing.T) {
+	tests := []struct {
+		name   string
+		input  []int
+		target int
+		want   []int
+	}{
+		{name: "example", input: []int{2, 7, 11, 15}, target: 9, want: []int{0, 1}},
+		{name: "duplicate values", input: []int{3, 3}, target: 6, want: []int{0, 1}},
+		{name: "no solution", input: []int{1, 2, 3}, target: 10, want: []int{}},
+		{name: "single element", input: []int{5}, target: 10, want: []int{}},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := TwoSum(tt.input, tt.target); !reflect.DeepEqual(got, tt.want) {
+				t.Fatalf("TwoSum(%v, %d) = %v, want %v", tt.input, tt.target, got, tt.want)
+			}
+		})
+	}
+}
