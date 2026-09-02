@@ -8,7 +8,12 @@ import (
 )
 
 func main() {
-	ExecuteScheduler()
+	s := Rectangle{
+		length: 5,
+		width:  3,
+	}
+	fmt.Printf("Area: %d\n", s.Area())
+	fmt.Printf("Perimeter: %d\n", s.Perimeter())
 	fmt.Println("run main_test.go check result")
 }
 
