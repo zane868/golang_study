@@ -1,13 +1,45 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"sync"
+	"time"
 )
 
 func main() {
-	Goroutine01()
+	ExecuteScheduler()
 	fmt.Println("run main_test.go check result")
+}
+
+// 任务调度器
+func ExecuteScheduler() {
+	scheduler := NewScheduler(3, 10)
+
+	// 提交任务
+	for i := 0; i < 1; i++ {
+		taskID := i
+		scheduler.Submit(func(ctx context.Context) (int, error) {
+			fmt.Printf("%s Task %d start\n", nowTime(), taskID)
+			select {
+			case <-time.After(2 * time.Second):
+				fmt.Printf("%s Task %d done\n", nowTime(), taskID)
+				return taskID, nil
+
+			case <-ctx.Done():
+				return taskID, ctx.Err()
+			}
+
+		})
+	}
+
+	//等待一段时间后关闭调度器
+	scheduler.Shutdown()
+}
+
+// 获取当前时间
+func nowTime() string {
+	return time.Now().Format("2006-01-02 15:04:05.000")
 }
 
 // 协程简单的使用
