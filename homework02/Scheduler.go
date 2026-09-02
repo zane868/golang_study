@@ -10,20 +10,19 @@ import (
 // Task 表示一个可以被调度执行的任务。
 type Task func(context.Context) (int, error)
 
+// Scheduler 管理任务队列和 worker。
 type Scheduler struct {
 	Tasks  chan Task          // 任务队列
 	ctx    context.Context    // 调度器的上下文
 	cancel context.CancelFunc // 用于取消调度器的上下文
 
-	workers sync.WaitGroup //  等待worker退出
-	tasksWG sync.WaitGroup // 等待已提交的任务完成
+	workers sync.WaitGroup // 等待 worker 退出
+	tasksWG sync.WaitGroup // 等待已提交任务完成
 
 	closeOnce sync.Once // 确保只关闭一次
 }
 
 // NewScheduler 创建任务调度器。
-// workerCount：同时执行任务的 Worker 数量。
-// queueSize：等待队列容量。
 func NewScheduler(workerCount, queueSize int) *Scheduler {
 	ctx, cancel := context.WithCancel(context.Background())
 
@@ -42,7 +41,6 @@ func NewScheduler(workerCount, queueSize int) *Scheduler {
 }
 
 func (scheduler *Scheduler) worker(workerID int) {
-	//注册延迟退出
 	defer scheduler.workers.Done()
 	for {
 		select {
@@ -67,16 +65,16 @@ func (scheduler *Scheduler) execute(workerID int, task Task) {
 		}
 	}()
 
-	//执行任务
-	taskId, err := task(scheduler.ctx)
+	taskID, err := task(scheduler.ctx)
 	if err != nil {
 		fmt.Printf("workerId %d: 任务执行失败: %v\n", workerID, err)
-	} else {
-		fmt.Printf("workerId: %d: 任务执完成: taskId:%d\n", workerID, taskId)
+		return
 	}
+
+	fmt.Printf("workerId: %d: 任务执行完成: taskId:%d\n", workerID, taskID)
 }
 
-// 提交任务
+// Submit 提交任务。
 func (scheduler *Scheduler) Submit(task Task) error {
 	if task == nil {
 		return errors.New("任务不能为空")
@@ -89,18 +87,17 @@ func (scheduler *Scheduler) Submit(task Task) error {
 	case scheduler.Tasks <- task:
 		return nil
 	}
-
 }
 
-// 等待任务
+// Wait 等待所有已提交任务完成。
 func (scheduler *Scheduler) Wait() {
 	scheduler.tasksWG.Wait()
 }
 
-// Shutdown 等待所有已提交任务完成，然后关闭 Worker。
+// Shutdown 等待所有已提交任务完成，然后关闭 workers。
 func (scheduler *Scheduler) Shutdown() {
 	scheduler.closeOnce.Do(func() {
-		scheduler.tasksWG.Wait() //等待已提交的任务
+		scheduler.tasksWG.Wait()
 		close(scheduler.Tasks)
 		scheduler.workers.Wait()
 		scheduler.cancel()
