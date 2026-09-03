@@ -4,11 +4,55 @@ import (
 	"context"
 	"fmt"
 	"sync"
+	"sync/atomic"
 	"time"
 )
 
 func main() {
-	GoroutineCommunication()
+	AtomicCase()
+}
+
+func AtomicCase() {
+	var (
+		atomicCount atomic.Int64
+		wg          sync.WaitGroup
+	)
+
+	wg.Add(10)
+	for i := 0; i < 10; i++ {
+		go func() {
+			defer wg.Done()
+			for i := 0; i < 1000; i++ {
+				atomicCount.Add(1)
+			}
+		}()
+	}
+	wg.Wait()
+	fmt.Println(atomicCount.Load())
+
+}
+
+// 互斥锁
+func MutexProtectAdd() {
+	var (
+		mu    sync.Mutex
+		count int
+		wg    sync.WaitGroup
+	)
+
+	wg.Add(10)
+	for i := 0; i < 10; i++ {
+		go func() {
+			defer wg.Done()
+			mu.Lock()
+			for i := 0; i < 1000; i++ {
+				count++
+			}
+			mu.Unlock()
+		}()
+	}
+	wg.Wait()
+	fmt.Println(count)
 }
 
 // 协程通信
