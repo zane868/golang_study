@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	AtomicCase()
+	fmt.Println("run homework02/main_test.go check result")
 }
 
 func AtomicCase() {

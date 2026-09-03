@@ -1,6 +1,12 @@
 package main
 
-import "testing"
+import (
+	"io"
+	"os"
+	"strconv"
+	"strings"
+	"testing"
+)
 
 func TestAdd(t *testing.T) {
 	tests := []struct {
@@ -60,4 +66,70 @@ func extractValues(values []*int) []int {
 		result[i] = *v
 	}
 	return result
+}
+
+func TestAtomicCase(t *testing.T) {
+	output := captureOutput(AtomicCase)
+
+	if output != "10000\n" {
+		t.Fatalf("AtomicCase() output = %q, want %q", output, "10000\n")
+	}
+}
+
+func TestMutexProtectAdd(t *testing.T) {
+	output := captureOutput(MutexProtectAdd)
+
+	if output != "10000\n" {
+		t.Fatalf("MutexProtectAdd() output = %q, want %q", output, "10000\n")
+	}
+}
+
+func TestGoroutineCommunication(t *testing.T) {
+	output := captureOutput(GoroutineCommunication)
+	lines := strings.Split(strings.TrimSpace(output), "\n")
+
+	if len(lines) != 100 {
+		t.Fatalf("GoroutineCommunication() printed %d values, want 100", len(lines))
+	}
+	for i, line := range lines {
+		want := "Received: " + strconv.Itoa(i)
+		if line != want {
+			t.Fatalf("GoroutineCommunication() line %d = %q, want %q", i, line, want)
+		}
+	}
+}
+
+func TestGoroutineCommunicationNoBuffer(t *testing.T) {
+	output := captureOutput(GoroutineCommunicationNoBuffer)
+	lines := strings.Split(strings.TrimSpace(output), "\n")
+
+	if len(lines) != 10 {
+		t.Fatalf("GoroutineCommunicationNoBuffer() printed %d values, want 10", len(lines))
+	}
+	for i, line := range lines {
+		want := "Received: " + strconv.Itoa(i)
+		if line != want {
+			t.Fatalf("GoroutineCommunicationNoBuffer() line %d = %q, want %q", i, line, want)
+		}
+	}
+}
+
+func captureOutput(function func()) string {
+	reader, writer, err := os.Pipe()
+	if err != nil {
+		panic(err)
+	}
+
+	original := os.Stdout
+	os.Stdout = writer
+	function()
+	writer.Close()
+	os.Stdout = original
+
+	output, err := io.ReadAll(reader)
+	if err != nil {
+		panic(err)
+	}
+	reader.Close()
+	return string(output)
 }
