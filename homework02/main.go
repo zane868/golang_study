@@ -8,13 +8,55 @@ import (
 )
 
 func main() {
-	s := Rectangle{
-		length: 5,
-		width:  3,
-	}
-	fmt.Printf("Area: %d\n", s.Area())
-	fmt.Printf("Perimeter: %d\n", s.Perimeter())
-	fmt.Println("run main_test.go check result")
+	GoroutineCommunication()
+}
+
+// 协程通信
+func GoroutineCommunication() {
+	cha := make(chan int, 10)
+	var wg sync.WaitGroup
+
+	wg.Add(2)
+
+	go func() {
+		defer wg.Done()
+		defer close(cha)
+
+		for i := 0; i < 100; i++ {
+			cha <- i
+		}
+	}()
+	go func() {
+		defer wg.Done()
+		for v := range cha {
+			fmt.Println("Received:", v)
+		}
+	}()
+	wg.Wait()
+}
+
+// 协程通信没有缓冲
+func GoroutineCommunicationNoBuffer() {
+	cha := make(chan int)
+	var wg sync.WaitGroup
+
+	wg.Add(2)
+
+	go func() {
+		defer wg.Done()
+		defer close(cha)
+
+		for i := 0; i < 10; i++ {
+			cha <- i
+		}
+	}()
+	go func() {
+		defer wg.Done()
+		for v := range cha {
+			fmt.Println("Received:", v)
+		}
+	}()
+	wg.Wait()
 }
 
 // 任务调度器
