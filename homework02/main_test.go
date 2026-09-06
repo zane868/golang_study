@@ -1,11 +1,13 @@
 package main
 
 import (
+	"context"
 	"io"
 	"os"
 	"strconv"
 	"strings"
 	"testing"
+	"time"
 )
 
 func TestAdd(t *testing.T) {
@@ -66,6 +68,54 @@ func extractValues(values []*int) []int {
 		result[i] = *v
 	}
 	return result
+}
+
+func TestSchedulerSubmitAfterShutdownDoesNotLeak(t *testing.T) {
+	scheduler := NewScheduler(1, 2)
+	scheduler.Shutdown()
+
+	err := scheduler.Submit(func(ctx context.Context) (int, error) {
+		return 1, nil
+	})
+	if err == nil {
+		t.Fatal("Submit after Shutdown() should return an error")
+	}
+
+	done := make(chan struct{})
+	go func() {
+		scheduler.Wait()
+		close(done)
+	}()
+
+	select {
+	case <-done:
+	case <-time.After(time.Second):
+		t.Fatal("Wait() blocked after failed Submit after Shutdown()")
+	}
+}
+
+func TestSchedulerSubmitWhenContextCancelledDoesNotLeak(t *testing.T) {
+	scheduler := NewScheduler(1, 1)
+	scheduler.cancel()
+
+	err := scheduler.Submit(func(ctx context.Context) (int, error) {
+		return 1, nil
+	})
+	if err == nil {
+		t.Fatal("Submit when ctx is already cancelled should return an error")
+	}
+
+	done := make(chan struct{})
+	go func() {
+		scheduler.Wait()
+		close(done)
+	}()
+
+	select {
+	case <-done:
+	case <-time.After(time.Second):
+		t.Fatal("Wait() blocked after context cancellation before Submit")
+	}
 }
 
 func TestAtomicCase(t *testing.T) {

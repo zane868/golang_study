@@ -80,9 +80,19 @@ func (scheduler *Scheduler) Submit(task Task) error {
 		return errors.New("任务不能为空")
 	}
 
+	// 先快速检查：调度器是否已经关闭
+	select {
+	case <-scheduler.ctx.Done():
+		return errors.New("调度器已关闭")
+	default:
+	}
+
+	// 只有在成功进入提交流程时，才计入 tasksWG
 	scheduler.tasksWG.Add(1)
 	select {
 	case <-scheduler.ctx.Done():
+		// 竞态：Shutdown 可能在 Add 之后发生
+		scheduler.tasksWG.Done()
 		return errors.New("调度器已关闭")
 	case scheduler.Tasks <- task:
 		return nil

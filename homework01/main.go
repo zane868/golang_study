@@ -66,20 +66,27 @@ func IsValidParentheses(str string) bool {
 
 // 最长前缀
 func LongestCommonPrefix(strs []string) string {
-
 	if len(strs) == 0 {
 		return ""
 	}
-	first := strs[0]
+
+	prefix := strs[0]
 	for i := 1; i < len(strs); i++ {
-		for j := 0; j < len(first) && j < len(strs[i]); j++ {
-			if first[j] != strs[i][j] {
-				first = first[:j]
+		current := strs[i]
+		for j := 0; j < len(prefix) && j < len(current); j++ {
+			if prefix[j] != current[j] {
+				prefix = prefix[:j]
 				break
 			}
 		}
+		if len(prefix) > len(current) {
+			prefix = prefix[:len(current)]
+		}
+		if prefix == "" {
+			return ""
+		}
 	}
-	return first
+	return prefix
 }
 
 // PlusOne 对数组表示的非负整数执行加一

@@ -70,6 +70,13 @@ func TestLongestCommonPrefix(t *testing.T) {
 		{name: "no common prefix", in: []string{"dog", "racecar", "car"}, want: ""},
 		{name: "single string", in: []string{"hello"}, want: "hello"},
 		{name: "empty array", in: []string{}, want: ""},
+		{name: "common prefix 2", in: []string{"flower", "flow", "flight", "f"}, want: "f"},
+		{name: "all same", in: []string{"abc", "abc", "abc"}, want: "abc"},
+		{name: "empty string in array", in: []string{"abc", "", "ab"}, want: ""},
+		{name: "one shorter than prefix", in: []string{"abcd", "ab", "abc"}, want: "ab"},
+		{name: "different first char", in: []string{"apple", "banana", "apricot"}, want: ""},
+		{name: "unicode prefix", in: []string{"你好世界", "你好啊", "你好"}, want: "你好"},
+		{name: "single char prefix", in: []string{"a", "ab", "ac"}, want: "a"},
 	}
 
 	for _, tt := range tests {
