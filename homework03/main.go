@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"math/big"
+	"sort"
 	"strconv"
 
 	"homework01/homework03/model"
@@ -31,27 +32,93 @@ func main() {
 	//获取所有用户
 	users := findAll(db)
 
+	//进行评论
+	comment(users, db)
+
+	//统计最大评论数
+	countCommentMax(db)
+
+	//清理评论
+	deleComment(users, db)
+
+}
+
+func countCommentMax(db *gorm.DB) []model.CommentGroup {
+
+	var results []model.CommentGroup
+
+	//在实际业务场景中 要根据具体的数据大小来确定是否直接用group
+	err := db.Model(&model.Comment{}).
+		Select("post_id, COUNT(post_id) AS total").
+		Group("post_id").Scan(&results).Error
+	if err != nil {
+		return nil
+	}
+
+	//找出最大评论数
+	sort.Slice(results, func(i, j int) bool {
+		return results[i].Total > results[j].Total
+	})
+
+	if len(results) == 0 {
+		return results
+	}
+
+	//返回所有评论数等于最大值的文章，主要处理两篇文章并行top1
+	maxTotal := results[0].Total
+	maxCount := 1
+	for maxCount < len(results) && results[maxCount].Total == maxTotal {
+		maxCount++
+	}
+	for _, group := range results[:maxCount] {
+		fmt.Println("文章 ID:", group.PostID, "最大评论数是:", group.Total)
+	}
+
+	return results[:maxCount]
+}
+
+func comment(users []model.User, db *gorm.DB) {
+
+	//进行评论
 	user1 := users[0]
 	user2 := users[1]
+	user3 := users[2]
 
 	user2_post := user2.Posts[0]
+	user3_post := user3.Posts[0]
 
 	for i := 0; i < 3; i++ {
 		createComment(user1.ID, user2_post.ID, db)
 	}
+	createComment(user1.ID, user3_post.ID, db)
+
+	//重新加载reload
+	u2 := get(user2.ID, db)
+	fmt.Println(u2.Posts[0].Comments[0].CreatedAt)
 
 }
 
-func createComment(UserId uint, postID uint, db *gorm.DB) {
+func createComment(userId uint, postID uint, db *gorm.DB) {
 	comment := model.Comment{
 		PostID:  postID,
-		UserId:  UserId,
+		UserId:  userId,
 		Content: randomChineseString(5, 20),
 	}
 	if err := db.Create(&comment).Error; err != nil {
 		log.Fatal("创建评论失败：", err)
 	}
+}
 
+func deleComment(users []model.User, db *gorm.DB) {
+
+	user1 := users[0]
+	user2 := users[1]
+
+	user2_post := user2.Posts[0]
+
+	if err := db.Delete(&model.Comment{UserId: user1.ID, PostID: user2_post.ID}, "user_id = ? AND post_id = ?", user1.ID, user2_post.ID).Error; err != nil {
+		log.Fatal("删除评论失败", err)
+	}
 }
 
 func createUserAndPost(db *gorm.DB) {
@@ -88,6 +155,12 @@ func createUser(name string) *model.User {
 func findAll(db *gorm.DB) []model.User {
 	users := make([]model.User, 0, 10)
 	db.Preload("Posts.Comments").Where("id > 0").Find(&users)
+	return users
+}
+
+func get(id uint, db *gorm.DB) model.User {
+	users := model.User{}
+	db.Preload("Posts.Comments").Where("id =?", id).Find(&users)
 	return users
 
 }
