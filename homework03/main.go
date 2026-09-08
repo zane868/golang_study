@@ -38,7 +38,6 @@ func main() {
 
 	for i := 0; i < 3; i++ {
 		createComment(user1.ID, user2_post.ID, db)
-
 	}
 
 }
