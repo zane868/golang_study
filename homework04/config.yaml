@@ -2,3 +2,6 @@ server:
   port: "8888"
   host: "0.0.0.0"
   mode: "debug"  # debug, release, test
+jwt:
+  secret: "cast911"
+  expire: "1"

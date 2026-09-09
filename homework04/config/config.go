@@ -8,12 +8,18 @@ import (
 
 type Config struct {
 	Server ServiceConfig
+	Jwt    JwtConfig
 }
 
 type ServiceConfig struct {
 	Port string `mapstructure:"port"`
 	Host string `mapstructure:"host"`
 	Mode string `mapstructure:"mode"`
+}
+
+type JwtConfig struct {
+	Secret string `mapstructure:"secret"`
+	Expire string `mapstructure:"expire"`
 }
 
 func newViper() *viper.Viper {
