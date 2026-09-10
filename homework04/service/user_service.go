@@ -19,6 +19,17 @@ func NewUserService(db *gorm.DB) *UserService {
 	return &UserService{db: db}
 }
 
+func (s *UserService) GetUser(name string) (*model.User, error) {
+	user := &model.User{}
+	if err := s.db.Where("username = ?", name).First(&user).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, util.NewAppError(401, "username not exists")
+		}
+		return nil, err
+	}
+	return user, nil
+}
+
 func (s *UserService) CreateUser(req model.CreateUserRequest) (*model.User, error) {
 
 	// 检查用户名是否已存在
@@ -73,17 +84,13 @@ func (s *UserService) CheckExists(query interface{}, args ...interface{}) error 
 }
 
 func (s *UserService) Authenticate(username, password string) (*model.User, error) {
-	var user model.User
-	if err := s.db.Where("username = ?", username).First(&user).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, util.NewAppError(401, "Invalid credentials")
-		}
+	user, err := s.GetUser(username)
+	if err != nil {
 		return nil, err
 	}
-
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
 		return nil, util.NewAppError(401, "Invalid credentials")
 	}
 
-	return &user, nil
+	return user, nil
 }

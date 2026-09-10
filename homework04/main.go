@@ -3,13 +3,12 @@ package main
 import (
 	"fmt"
 	"log"
-	"net/http"
 
 	"github.com/zane868/golang_study/homework04/config"
 	"github.com/zane868/golang_study/homework04/handler"
+	"github.com/zane868/golang_study/homework04/middleware"
 	"github.com/zane868/golang_study/homework04/model"
 	"github.com/zane868/golang_study/homework04/service"
-	"github.com/zane868/golang_study/homework04/util"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 
@@ -28,28 +27,20 @@ func main() {
 	router := gin.Default()
 
 	userService := service.NewUserService(db)
+	postService := service.NewPostService(userService, db)
 	userHandler := handler.NewUserHandler(userService, []byte(cfg.Jwt.Secret))
+	postHandler := handler.NewPostHandler(postService)
 
 	users_v1 := router.Group("/api/v1/users")
 	{
 		users_v1.POST("/register", userHandler.Register)
 		users_v1.POST("/login", userHandler.Login)
-
 	}
 
-	post_v1 := router.Group("/api/v1/post")
+	post_v1 := router.Group("/api/v1/posts")
+	post_v1.Use(middleware.Auth([]byte(cfg.Jwt.Secret)))
 	{
-		post_v1.POST("", func(ctx *gin.Context) {
-			authHeader := ctx.GetHeader("Authorization")
-			// 验证 Token
-			claims, err := util.ParseToken(authHeader, []byte(cfg.Jwt.Secret))
-			if err != nil {
-				util.Error(ctx, http.StatusUnauthorized, "Invalid token")
-				ctx.Abort()
-				return
-			}
-			fmt.Println(claims)
-		})
+		post_v1.POST("", postHandler.PublishBlog)
 	}
 
 	//启动服务
@@ -66,7 +57,7 @@ func initDb() *gorm.DB {
 	}
 
 	// 根据 User 结构自动创建或更新表
-	if err := db.AutoMigrate(&model.User{}); err != nil {
+	if err := db.AutoMigrate(&model.User{}, &model.Post{}); err != nil {
 		panic(fmt.Errorf("创建数据表失败：: %w", err))
 	}
 

@@ -9,6 +9,7 @@ type User struct {
 	Username  string    `json:"username" gorm:"uniqueIndex;not null;size:50"`
 	Password  string    `json:"password"`
 	Email     string    `json:"email" gorm:"uniqueIndex;not null;size:100"`
+	Posts     []Post    `gorm:"constraint:OnDelete:CASCADE;"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 }
