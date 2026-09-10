@@ -8,7 +8,7 @@ import (
 	"sort"
 	"strconv"
 
-	"homework01/homework03/model"
+	"github.com/zane868/golang_study/homework03/model"
 
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"

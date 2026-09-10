@@ -2,11 +2,16 @@ package main
 
 import (
 	"fmt"
-	"homework01/homework04/config"
-	"homework01/homework04/model"
-	"homework01/homework04/util"
 	"log"
 	"net/http"
+
+	"github.com/zane868/golang_study/homework04/config"
+	"github.com/zane868/golang_study/homework04/handler"
+	"github.com/zane868/golang_study/homework04/model"
+	"github.com/zane868/golang_study/homework04/service"
+	"github.com/zane868/golang_study/homework04/util"
+	"gorm.io/driver/sqlite"
+	"gorm.io/gorm"
 
 	"github.com/gin-gonic/gin"
 )
@@ -16,44 +21,19 @@ func main() {
 	//加载配置文件
 	cfg := config.Load()
 
-	token, _ := util.GenerateToken([]byte(cfg.Jwt.Secret), 556, "hello")
-
-	fmt.Println(token)
-
-	c, _ := util.ParseToken(token, []byte(cfg.Jwt.Secret))
-
-	fmt.Println(c)
+	// 初始化数据库
+	db := initDb()
 
 	//注册路由
 	router := gin.Default()
 
+	userService := service.NewUserService(db)
+	userHandler := handler.NewUserHandler(userService, []byte(cfg.Jwt.Secret))
+
 	users_v1 := router.Group("/api/v1/users")
 	{
-		users_v1.POST("/register", func(ctx *gin.Context) {
-			var u model.User
-			if err := ctx.ShouldBindJSON(&u); err != nil {
-				ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-				return
-			}
-
-			if u.UserName != "manu" || u.Password != "123" {
-				ctx.JSON(http.StatusUnauthorized, gin.H{"status": "unauthorized"})
-				return
-			}
-			ctx.JSON(http.StatusOK, gin.H{"status": "you are logged in"})
-		})
-
-		users_v1.POST("/login", func(ctx *gin.Context) {
-			var u model.User
-			if err := ctx.ShouldBindJSON(&u); err != nil {
-				ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-				return
-			}
-			token, _ := util.GenerateToken([]byte(cfg.Jwt.Secret), 5, u.UserName)
-			util.Success(ctx, gin.H{
-				"token": token,
-			})
-		})
+		users_v1.POST("/register", userHandler.Register)
+		users_v1.POST("/login", userHandler.Login)
 
 	}
 
@@ -76,4 +56,19 @@ func main() {
 	addr := cfg.Server.Host + ":" + cfg.Server.Port
 	log.Printf("Server starting on %s", addr)
 	router.Run(addr) // listens on 0.0.0.0:8080 by default
+}
+
+func initDb() *gorm.DB {
+
+	db, err := gorm.Open(sqlite.Open("data/blogs.db"), &gorm.Config{})
+	if err != nil {
+		panic(fmt.Errorf("连接数据库失败: %w", err))
+	}
+
+	// 根据 User 结构自动创建或更新表
+	if err := db.AutoMigrate(&model.User{}); err != nil {
+		panic(fmt.Errorf("创建数据表失败：: %w", err))
+	}
+
+	return db
 }
