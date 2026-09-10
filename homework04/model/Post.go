@@ -24,8 +24,18 @@ type CreatePostRequest struct {
 	Username string `json:"username"`
 }
 
+type UpdatePostRequest struct {
+	Title   string `json:"title"`
+	Content string `json:"content"`
+	PostId  string `json:"postId"`
+}
+
 type PostResponse struct {
-	ID uint `json:"id"`
+	ID        uint   `json:"id"`
+	Title     string `json:"title"`
+	Content   string `json:"content"`
+	CreatedAt string `json:"created_at"`
+	UpdatedAt string `json:"updated_at"`
 }
 
 func (p *Post) BeforeCreate(db *gorm.DB) error {

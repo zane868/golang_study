@@ -23,24 +23,31 @@ func main() {
 	// 初始化数据库
 	db := initDb()
 
-	//注册路由
-	router := gin.Default()
-
+	//实例化服务
 	userService := service.NewUserService(db)
 	postService := service.NewPostService(userService, db)
 	userHandler := handler.NewUserHandler(userService, []byte(cfg.Jwt.Secret))
 	postHandler := handler.NewPostHandler(postService)
 
-	users_v1 := router.Group("/api/v1/users")
+	//注册路由
+	router := gin.Default()
+
+	//用户
+	public_users_v1 := router.Group("/api/v1/users")
 	{
-		users_v1.POST("/register", userHandler.Register)
-		users_v1.POST("/login", userHandler.Login)
+		public_users_v1.POST("/register", userHandler.Register)
+		public_users_v1.POST("/login", userHandler.Login)
 	}
 
-	post_v1 := router.Group("/api/v1/posts")
-	post_v1.Use(middleware.Auth([]byte(cfg.Jwt.Secret)))
+	//文章
+	protected_post_v1 := router.Group("/api/v1/posts")
+	protected_post_v1.Use(middleware.Auth([]byte(cfg.Jwt.Secret)))
 	{
-		post_v1.POST("", postHandler.PublishBlog)
+		protected_post_v1.GET("", postHandler.List)
+		protected_post_v1.POST("", postHandler.PublishBlog)
+		protected_post_v1.GET("/:id", postHandler.Get)
+		protected_post_v1.PUT("/:id", postHandler.Update)
+		protected_post_v1.DELETE("/:id", postHandler.Delete)
 	}
 
 	//启动服务
