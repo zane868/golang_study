@@ -30,7 +30,7 @@ func (s *UserService) GetUser(name string) (*model.User, error) {
 	return user, nil
 }
 
-func (s *UserService) CreateUser(req model.CreateUserRequest) (*model.User, error) {
+func (s *UserService) Create(req model.CreateUserRequest) (*model.User, error) {
 
 	// 检查用户名是否已存在
 	if err := s.CheckNameExists(req.Username); err != nil {
@@ -72,7 +72,7 @@ func (s *UserService) CheckEmailExists(email string) error {
 
 func (s *UserService) CheckExists(query interface{}, args ...interface{}) error {
 	var count int64
-	err := s.db.Model(&model.User{}).Where(query, args).Count(&count).Error
+	err := s.db.Model(&model.User{}).Where(query, args...).Count(&count).Error
 	if err != nil {
 		return err
 	}

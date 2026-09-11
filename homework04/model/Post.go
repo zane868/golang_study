@@ -13,7 +13,8 @@ type Post struct {
 	Content   string `json:"content"`
 	Count     int
 	UserID    uint
-	User      User `gorm:"constraint:OnDelete:CASCADE;"`
+	User      User      `gorm:"constraint:OnDelete:CASCADE;"`
+	Comments  []Comment `gorm:"constraint:OnDelete:CASCADE;"`
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
@@ -31,11 +32,12 @@ type UpdatePostRequest struct {
 }
 
 type PostResponse struct {
-	ID        uint   `json:"id"`
-	Title     string `json:"title"`
-	Content   string `json:"content"`
-	CreatedAt string `json:"created_at"`
-	UpdatedAt string `json:"updated_at"`
+	Comments  []CommentResponse `json:"comments"`
+	ID        uint              `json:"id"`
+	Title     string            `json:"title"`
+	Content   string            `json:"content"`
+	CreatedAt string            `json:"created_at"`
+	UpdatedAt string            `json:"updated_at"`
 }
 
 func (p *Post) BeforeCreate(db *gorm.DB) error {

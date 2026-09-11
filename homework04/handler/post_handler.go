@@ -45,7 +45,8 @@ func (h *PostHandler) PublishBlog(c *gin.Context) {
 		return
 	}
 
-	post, err := h.postService.CreatePost(req)
+	req.Username = c.GetString("username")
+	post, err := h.postService.Create(req)
 	if err != nil {
 		util.HandleError(c, err)
 		return
@@ -119,8 +120,13 @@ func (h *PostHandler) getOwnedPost(c *gin.Context) (*model.Post, bool) {
 
 func toPostResponse(post *model.Post) model.PostResponse {
 	const layout = "2006-01-02 15:04:05.000"
+	comments := make([]model.CommentResponse, 0, len(post.Comments))
+	for _, comment := range post.Comments {
+		comments = append(comments, toCommentResponse(comment))
+	}
 
 	return model.PostResponse{
+		Comments:  comments,
 		ID:        post.ID,
 		Title:     post.Title,
 		Content:   post.Content,

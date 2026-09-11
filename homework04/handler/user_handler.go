@@ -26,7 +26,7 @@ func (h *UserHandler) Register(c *gin.Context) {
 		return
 	}
 
-	user, err := h.userService.CreateUser(req)
+	user, err := h.userService.Create(req)
 	if err != nil {
 		util.HandleError(c, err)
 		return

@@ -27,6 +27,7 @@ func (p *PostService) List(username string) ([]*model.Post, error) {
 	}
 	posts := make([]*model.Post, 0)
 	if err := p.db.
+		Preload("Comments.User").
 		Where("user_id = ?", user.ID).
 		Find(&posts).Error; err != nil {
 		return nil, err
@@ -36,13 +37,12 @@ func (p *PostService) List(username string) ([]*model.Post, error) {
 
 func (p *PostService) Get(postId uint) (*model.Post, error) {
 	var post model.Post
-	if err := p.db.First(&post, postId).Error; err != nil {
+	if err := p.db.Preload("Comments.User").First(&post, postId).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, util.NewAppError(404, "Post not found")
 		}
 		return nil, err
 	}
-
 	return &post, nil
 }
 
@@ -70,14 +70,14 @@ func (p *PostService) Update(req model.UpdatePostRequest) (*model.Post, error) {
 	post.Content = req.Content
 	post.Count = utf8.RuneCountInString(req.Content)
 
-	if err := p.db.Save(post).Error; err != nil {
+	if err := p.db.Omit("Comments", "User").Save(post).Error; err != nil {
 		return nil, err
 	}
 
 	return post, nil
 }
 
-func (p *PostService) CreatePost(req model.CreatePostRequest) (*model.Post, error) {
+func (p *PostService) Create(req model.CreatePostRequest) (*model.Post, error) {
 
 	user, err := p.userService.GetUser(req.Username)
 	if err != nil {

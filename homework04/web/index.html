@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>墨迹 · 博客实验室</title>
+<style>
+:root{font-family:system-ui,-apple-system,"PingFang SC",sans-serif;color:#24372f;background:#f3f5ef}*{box-sizing:border-box}body{margin:0}header{background:#183e31;color:#fff;padding:32px max(5vw,20px)}header small{color:#acd0bd;letter-spacing:3px}h1{margin:10px 0;font-size:32px}header p{color:#cbdcd1;max-width:700px;line-height:1.7}main{max-width:1240px;margin:28px auto;padding:0 20px}.bar{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:24px}.bar span{margin-right:auto}.grid{display:grid;grid-template-columns:1fr 1.2fr;gap:22px}.card{background:#fff;border:1px solid #dce3d7;border-radius:16px;padding:24px;margin-bottom:22px;box-shadow:0 6px 24px #20302005}h2{font-size:19px;margin:0 0 8px}h3{font-size:15px}p,.hint{color:#69766c;font-size:14px;line-height:1.7}label{display:block;font-size:13px;font-weight:600;margin:16px 0 7px}input,textarea{width:100%;border:1px solid #ccd7cb;border-radius:8px;padding:11px;font:inherit;background:#fcfdfb}textarea{resize:vertical;min-height:110px}input:focus,textarea:focus{outline:2px solid #8ebca0;outline-offset:1px}button{border:0;background:#246447;color:#fff;padding:11px 17px;border-radius:8px;cursor:pointer;font:inherit;font-size:14px}button:hover{filter:brightness(.92)}button:disabled{opacity:.5;cursor:wait}.secondary{background:#eaf0e6;color:#294c39}.danger{background:#faece9;color:#a23e31}.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}.row{display:grid;grid-template-columns:1fr 1fr;gap:14px}pre{white-space:pre-wrap;overflow-wrap:anywhere;font:12px/1.7 ui-monospace,monospace;background:#142b24;color:#d9eddf;padding:18px;border-radius:10px;max-height:430px;overflow:auto}.post{padding:16px 0;border-bottom:1px solid #e8ece4}.post p{white-space:pre-wrap;overflow-wrap:anywhere;max-height:120px;overflow:auto}.post strong{overflow-wrap:anywhere}details{margin-top:20px}summary{cursor:pointer;font-weight:600}table{width:100%;border-collapse:collapse;font-size:13px}td,th{text-align:left;border-bottom:1px solid #e7ece3;padding:10px 5px}code{overflow-wrap:anywhere}#notice{padding:13px 16px;background:#e8efdf;border-radius:10px;margin-bottom:20px;overflow-wrap:anywhere}#notice.error{background:#fbe9e4;color:#9c362a}.pill{font-size:12px;background:#eaf0e6;color:#356044;padding:4px 9px;border-radius:20px}#request{font:12px ui-monospace,monospace;overflow-wrap:anywhere}@media(max-width:800px){.grid{grid-template-columns:1fr}header{padding:24px 20px}.card{padding:20px}h1{font-size:27px}.row{grid-template-columns:1fr}}
+/* 提示随页面滚动吸顶，长错误可在提示栏内滚动查看。 */
+#notice{position:sticky;top:12px;z-index:100;box-shadow:0 6px 20px #183e3126;max-height:30vh;overflow:auto}
+#notice{opacity:1;transition:opacity 180ms ease;animation:notice-in 240ms ease-out}
+#notice.fading{opacity:0}
+@keyframes notice-in{from{opacity:0}to{opacity:1}}
+@media(prefers-reduced-motion:reduce){#notice{transition:none;animation:none}}
+</style>
+</head>
+<body>
+<header><small>GO / GIN / GORM</small><h1>墨迹 · 博客实验室</h1><p>从一个想法到一篇文章。在这里注册、登录、管理文章与评论，也能直接查看每次 HTTP 请求的结果。</p></header>
+<main>
+<div class="bar"><span id="identity">● 尚未登录</span><span class="pill">10 个业务接口</span><button id="logout" class="secondary">清除本页登录状态</button></div>
+<div id="notice" role="status" aria-live="polite">先注册或登录，再开始管理文章。登录状态仅保存在当前页面，刷新后需重新登录。</div>
+<div class="grid"><div>
+<section class="card"><h2>01 / 用户账户</h2><p>已有账户可直接登录。注册成功后仍需点击登录。</p>
+<form id="account"><label for="username">用户名</label><input id="username" required minlength="3" maxlength="20" autocomplete="username" placeholder="3–20 个字符">
+<label for="email">邮箱（注册时必填）</label><input id="email" type="email" autocomplete="email" placeholder="you@example.com">
+<label for="password">密码</label><input id="password" type="password" required autocomplete="current-password" placeholder="注册时至少 6 个字符">
+<div class="actions"><button type="submit">登录</button><button id="register" type="button" class="secondary">注册新账户</button></div></form></section>
+<section class="card"><h2>02 / 文章编辑器</h2><p>发布归属于当前登录用户。填入文章 ID 可读取、更新或删除已有文章。</p>
+<form id="editor"><label for="postID">文章 ID</label><input id="postID" type="number" min="1" step="1" placeholder="发布后自动填入；也可从列表选择">
+<label for="title">标题</label><input id="title" placeholder="给文章取个名字">
+<label for="content">正文</label><textarea id="content" rows="6" placeholder="写下你的内容……"></textarea>
+<div class="actions"><button type="submit">发布新文章</button><button id="update" type="button" class="secondary">保存更新</button><button id="detail" type="button" class="secondary">读取详情</button><button id="deletePost" type="button" class="danger">删除文章</button></div></form></section>
+<section class="card"><h2>03 / 评论</h2><p>按文章 ID 查看评论。发表、删除后自动刷新评论和我的文章；仅能删除自己发表的评论。</p>
+<form id="commentForm"><label for="commentPostID">被评论的文章 ID</label><input id="commentPostID" type="number" min="1" step="1" required>
+<label for="commentContent">评论内容</label><textarea id="commentContent" required rows="3"></textarea><div class="actions"><button type="submit">发表评论</button><button type="button" id="listComments" class="secondary">查询评论列表</button></div></form>
+<h3 id="commentListTitle">评论列表</h3><div id="commentList"><p>输入文章 ID，点击“查询评论列表”。</p></div>
+<label for="commentID">评论 ID（仅可删除自己的评论）</label><input id="commentID" type="number" min="1" step="1"><div class="actions"><button id="deleteComment" class="danger">删除评论</button></div></section>
+</div><div>
+<section class="card"><div class="bar"><h2>我的文章</h2><button id="refresh" class="secondary">刷新列表</button></div><div id="posts"><p>登录后点击“刷新列表”查看文章。</p></div></section>
+<section class="card"><h2>请求观察窗</h2><p>显示最近一次请求和响应。Token 与密码不会显示在这里。</p><div id="request">等待请求</div><pre id="output" aria-live="polite">{}</pre>
+<details><summary>接口清单与约定</summary><p>除注册、登录外均需要 Authorization 请求头，值直接使用 JWT，不加 Bearer。页面自动完成。详情、更新、删除文章需要是文章作者。</p>
+<table><thead><tr><th>方法</th><th>路径 / 用途</th></tr></thead><tbody>
+<tr><td>GET</td><td>/api/v1/comments?postId=1 · 指定文章的评论列表</td></tr>
+<tr><td>POST</td><td>/api/v1/users/register · username, email, password</td></tr><tr><td>POST</td><td>/api/v1/users/login · username, password</td></tr>
+<tr><td>GET</td><td>/api/v1/posts · 我的文章列表</td></tr><tr><td>POST</td><td>/api/v1/posts · title, content</td></tr><tr><td>GET</td><td>/api/v1/posts/:id · 详情</td></tr><tr><td>PUT</td><td>/api/v1/posts/:id · title, content（完整替换）</td></tr><tr><td>DELETE</td><td>/api/v1/posts/:id · 删除文章</td></tr><tr><td>POST</td><td>/api/v1/comments · postId, content</td></tr><tr><td>DELETE</td><td>/api/v1/comments/:id · 删除评论</td></tr></tbody></table></details></section>
+</div></div></main>
+<script>
+'use strict';
+const $=id=>document.getElementById(id);let token='',user=null,busy=false;
+let noticeTimer;
+function notice(message,error=false){
+ const element=$('notice');
+ clearTimeout(noticeTimer);
+ const show=()=>{element.textContent=message;element.classList.toggle('error',error);element.classList.remove('fading')};
+ if(window.matchMedia('(prefers-reduced-motion: reduce)').matches){show();return}
+ element.classList.add('fading');
+ noticeTimer=setTimeout(show,180);
+}
+function clearSession(){token='';user=null;$('identity').textContent='● 尚未登录';$('posts').replaceChildren();$('posts').textContent='登录后点击“刷新列表”查看文章。';$('commentList').textContent='请登录后查询评论';$('commentListTitle').textContent='评论列表'}
+function safe(value){if(Array.isArray(value))return value.map(safe);if(value&&typeof value==='object')return Object.fromEntries(Object.entries(value).map(([k,v])=>[k,/authorization|password|token/i.test(k)?'[已隐藏]':safe(v)]));return value}
+async function api(method,path,body,auth=true){if(auth&&!token)throw Error('请先登录');const headers={};if(auth)headers.Authorization=token;if(body)headers['Content-Type']='application/json';const start=performance.now();$('request').textContent=method+' '+path+' · 请求中';$('output').textContent='';let response;try{response=await fetch(path,{method,headers,body:body?JSON.stringify(body):undefined,signal:AbortSignal.timeout(15000)})}catch(e){$('request').textContent=method+' '+path+' · 请求失败';throw Error('请求失败，请检查服务是否启动：'+e.message)}const raw=await response.text();let result;try{result=JSON.parse(raw)}catch{result={message:raw}}$('request').textContent=method+' '+path+' · HTTP '+response.status+' · '+Math.round(performance.now()-start)+' ms';$('output').textContent=JSON.stringify(safe(result),null,2);if(!response.ok){if(response.status===401&&auth)clearSession();throw Error(typeof result.msg==='string'?result.msg:'请求失败，请查看响应')}return result.data}
+function bind(id,event,fn){$(id).addEventListener(event,async e=>{e.preventDefault();if(busy)return;busy=true;document.querySelectorAll('button').forEach(b=>b.disabled=true);try{await fn()}catch(err){notice(err.message,true)}finally{busy=false;document.querySelectorAll('button').forEach(b=>b.disabled=false)}})}
+function number(id){const n=Number($(id).value);if(!Number.isSafeInteger(n)||n<=0)throw Error('请输入有效的正整数 ID');return n}
+function fill(post){$('postID').value=post.id;$('title').value=post.title;$('content').value=post.content;$('commentPostID').value=post.id}
+async function refresh(){const posts=await api('GET','/api/v1/posts');$('posts').replaceChildren();if(!posts.length){$('posts').textContent='还没有文章，发布你的第一篇吧。';return}for(const post of posts){const node=document.createElement('article');node.className='post';const heading=document.createElement('strong');heading.textContent='#'+post.id+' · '+post.title;const date=document.createElement('p');date.textContent=post.updated_at;const content=document.createElement('p');content.textContent=post.content;const button=document.createElement('button');button.className='secondary';button.textContent='填入编辑器';button.onclick=()=>{fill(post);notice('已选择文章 #'+post.id);$('title').focus()};const caption=document.createElement('h3');caption.textContent='评论 · '+(post.comments||[]).length;const comments=document.createElement('div');renderComments(comments,post.comments||[]);node.append(heading,date,content,button,caption,comments);$('posts').append(node)}}
+function renderComments(container,comments){container.replaceChildren();if(!comments.length){container.textContent='暂无评论';return}for(const comment of comments){const item=document.createElement('div');item.className='post';const author=document.createElement('strong');author.textContent=(comment.username||'用户 #'+comment.user_id)+' · 评论 #'+comment.id;const time=document.createElement('p');time.textContent=comment.created_at;const content=document.createElement('p');content.textContent=comment.content;item.append(author,time,content);if(user&&comment.user_id===user.id){const button=document.createElement('button');button.className='danger';button.textContent='删除这条评论';button.onclick=()=>run(async()=>{await deleteComment(comment.id,comment.post_id)});item.append(button)}container.append(item)}}
+async function run(fn){if(busy)return;busy=true;document.querySelectorAll('button').forEach(b=>b.disabled=true);try{await fn()}catch(err){notice(err.message,true)}finally{busy=false;document.querySelectorAll('button').forEach(b=>b.disabled=false)}}
+async function loadComments(postID){$('commentList').textContent='正在加载……';try{const comments=await api('GET','/api/v1/comments?postId='+postID);$('commentListTitle').textContent='文章 #'+postID+' 的评论 · '+comments.length;renderComments($('commentList'),comments)}catch(err){$('commentListTitle').textContent='评论列表';$('commentList').textContent='加载失败：'+err.message;throw err}}
+async function syncComments(postID){try{await refresh();if(postID)await loadComments(postID)}catch(err){notice('操作已成功，但刷新失败：'+err.message,true)}}
+async function deleteComment(id,postID){if(!confirm('确认删除评论 #'+id+'？'))return;await api('DELETE','/api/v1/comments/'+id);$('commentID').value='';notice('评论 #'+id+' 已删除');await syncComments(postID)}
+bind('listComments','click',async()=>{await loadComments(number('commentPostID'));notice('评论列表已更新')});
+bind('account','submit',async()=>{const result=await api('POST','/api/v1/users/login',{username:$('username').value,password:$('password').value},false);token=result.authorization;user=result.user;$('password').value='';$('posts').replaceChildren();$('posts').textContent='登录成功，点击“刷新列表”获取文章。';$('identity').textContent='● '+user.username+' · 用户 #'+user.id;notice('登录成功，后续请求将自动携带 Token。')});
+bind('register','click',async()=>{if(!$('account').reportValidity())return;if(!$('email').value)throw Error('注册需要填写邮箱');if($('password').value.length<6)throw Error('注册密码至少 6 个字符');await api('POST','/api/v1/users/register',{username:$('username').value,email:$('email').value,password:$('password').value},false);notice('注册成功！点击“登录”继续。')});
+bind('logout','click',async()=>{clearSession();$('password').value='';$('output').textContent='{}';$('request').textContent='等待请求';notice('已清除本页登录状态；服务端没有 Token 撤销接口。')});
+bind('refresh','click',async()=>{await refresh();notice('文章列表已刷新')});
+bind('editor','submit',async()=>{const post=await api('POST','/api/v1/posts',{title:$('title').value,content:$('content').value});fill(post);notice('发布成功，文章 ID：'+post.id+'。可刷新列表查看。')});
+bind('detail','click',async()=>{fill(await api('GET','/api/v1/posts/'+number('postID')));notice('文章详情已加载到编辑器')});
+bind('update','click',async()=>{fill(await api('PUT','/api/v1/posts/'+number('postID'),{title:$('title').value,content:$('content').value}));notice('文章已更新，可刷新列表查看')});
+bind('deletePost','click',async()=>{const id=number('postID');if(!confirm('确认永久删除文章 #'+id+'？'))return;await api('DELETE','/api/v1/posts/'+id);$('editor').reset();notice('文章 #'+id+' 已删除，可刷新列表查看')});
+bind('commentForm','submit',async()=>{const postID=number('commentPostID');const comment=await api('POST','/api/v1/comments',{postId:postID,content:$('commentContent').value});$('commentID').value=comment.id;$('commentContent').value='';notice('评论已发表，评论 ID：'+comment.id);await syncComments(postID)});
+bind('deleteComment','click',async()=>{await deleteComment(number('commentID'),$('commentPostID').value?number('commentPostID'):null)});
+</script></body></html>
