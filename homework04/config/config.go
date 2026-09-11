@@ -1,7 +1,7 @@
 package config
 
 import (
-	"log"
+	"fmt"
 
 	"github.com/spf13/viper"
 )
@@ -22,7 +22,7 @@ type JwtConfig struct {
 	Expire string `mapstructure:"expire"`
 }
 
-func newViper() *viper.Viper {
+func newViper() (*viper.Viper, error) {
 
 	v := viper.New()
 	// 设置配置文件名称（不含扩展名）
@@ -42,20 +42,23 @@ func newViper() *viper.Viper {
 	v.SetDefault("server.mode", "debug")
 
 	if err := v.ReadInConfig(); err != nil {
-		log.Fatalf("读取配置失败: %v", err)
+		return nil, fmt.Errorf("读取配置失败: %w", err)
 	}
 
-	return v
+	return v, nil
 
 }
 
-func Load() *Config {
+func Load() (*Config, error) {
 
-	v := newViper()
+	v, err := newViper()
+	if err != nil {
+		return nil, err
+	}
 	var cfg Config
 	if err := v.Unmarshal(&cfg); err != nil {
-		log.Fatalf("解析配置失败: %v", err)
+		return nil, fmt.Errorf("解析配置失败: %w", err)
 	}
-	return &cfg
+	return &cfg, nil
 
 }

@@ -26,6 +26,16 @@
 
 响应使用 `code`、`msg`、`data` / `error`。文章时间格式为 `2006-01-02 15:04:05.000`（服务器本地时间）。常见状态为 400 无效 ID、401 未登录或凭据错误、403 非本人资源、404 资源不存在、409 重复账户、422 参数校验失败。
 
-## 验证
+## 日志
+
+使用 Go 标准库 `log/slog`，通过 `io.MultiWriter` 同时向控制台和 `logs/app.log` 写入 JSON 日志，无需安装额外依赖。程序自动创建目录，以追加方式写入，重启不会清空历史日志。路径相对于进程工作目录；按上述方式启动时为 `homework04/logs/app.log`，IDE 启动也生效。日志文件已加入 Git 忽略规则。启动日志覆盖配置加载、数据库初始化和 HTTP 服务启动；启动失败记录 ERROR 并以非零状态退出。无法创建日志文件时会向标准错误报告原因并停止启动。
+
+HTTP 日志包含 `request_id`、`method`、`route`、`status`、`duration_ms`、`user_id`。正常请求为 INFO、4xx 为 WARN、5xx 为 ERROR。响应头 `X-Request-ID` 可用于定位同一次请求的业务错误和 panic 日志。panic 会记录类型和堆栈，并在尚未写入响应时返回通用 500。
+
+不记录请求正文、查询参数、Cookie、Authorization 或 SQL 参数。业务错误记录错误原因，未知错误不向客户端暴露内部细节。默认 GORM SQL 日志关闭，数据库错误交由业务层统一记录。
+
+无需命令行重定向。可在 `homework04` 目录使用 `tail -f logs/app.log` 实时查看文件日志。当前为单文件追加，不自动轮转；长期运行需配置日志轮转。Gin 的 debug 信息也经由 slog 写入两个目标，设置 `server.mode: release` 可关闭路由调试输出。
+
+## 自动测试
 
 从仓库根目录运行 `go test ./homework04/...`。集成测试使用临时 SQLite 数据库，覆盖全部业务接口及身份冒用、跨用户操作的拒绝，不改动本地 `data/blogs.db`。

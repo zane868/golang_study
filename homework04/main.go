@@ -3,17 +3,19 @@ package main
 import (
 	_ "embed"
 	"fmt"
-	"log"
+	"log/slog"
 	"net/http"
 	"os"
 
 	"github.com/zane868/golang_study/homework04/config"
 	"github.com/zane868/golang_study/homework04/handler"
+	"github.com/zane868/golang_study/homework04/logging"
 	"github.com/zane868/golang_study/homework04/middleware"
 	"github.com/zane868/golang_study/homework04/model"
 	"github.com/zane868/golang_study/homework04/service"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
+	gormlogger "gorm.io/gorm/logger"
 
 	"github.com/gin-gonic/gin"
 )
@@ -31,12 +33,58 @@ type ServiceContext struct {
 var indexHTML []byte
 
 func main() {
+	logger, logFile, err := logging.New("logs/app.log", os.Stdout)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "初始化日志失败: %v\n", err)
+		os.Exit(1)
+	}
+	slog.SetDefault(logger)
+	// Gin 的调试信息也经由 slog 同时写入控制台和文件。
+	gin.DebugPrintFunc = func(format string, values ...interface{}) {
+		slog.Info(fmt.Sprintf(format, values...))
+	}
+	exitCode := 0
+	if err := run(); err != nil {
+		slog.Error("Application startup failed", "error", err)
+		exitCode = 1
+	}
+	if err := logFile.Close(); err != nil {
+		fmt.Fprintf(os.Stderr, "关闭日志文件失败: %v\n", err)
+		exitCode = 1
+	}
+	if exitCode != 0 {
+		os.Exit(exitCode)
+	}
+}
+
+func run() error {
 
 	//加载配置文件
-	cfg := config.Load()
+	cfg, err := config.Load()
+	if err != nil {
+		return err
+	}
+	if cfg.Server.Mode != gin.DebugMode && cfg.Server.Mode != gin.ReleaseMode && cfg.Server.Mode != gin.TestMode {
+		return fmt.Errorf("invalid server mode")
+	}
+	gin.SetMode(cfg.Server.Mode)
+	slog.Info("Configuration loaded", "mode", cfg.Server.Mode)
 
 	//初始化数据库
-	db := initDb()
+	db, err := initDb()
+	if err != nil {
+		return err
+	}
+	sqlDB, err := db.DB()
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err := sqlDB.Close(); err != nil {
+			slog.Error("Database close failed", "error", err)
+		}
+	}()
+	slog.Info("Database initialized", "driver", "sqlite")
 
 	//实例化服务
 	serviceContext := NewContext(db, cfg)
@@ -46,8 +94,8 @@ func main() {
 
 	//启动服务
 	addr := cfg.Server.Host + ":" + cfg.Server.Port
-	log.Printf("Server starting on %s", addr)
-	router.Run(addr) // listens on 0.0.0.0:8080 by default
+	slog.Info("HTTP server starting", "address", addr)
+	return router.Run(addr)
 }
 
 func NewContext(db *gorm.DB, cfg *config.Config) *ServiceContext {
@@ -68,7 +116,8 @@ func NewContext(db *gorm.DB, cfg *config.Config) *ServiceContext {
 
 func regRouter(sc *ServiceContext, cfg *config.Config) *gin.Engine {
 	//注册路由
-	router := gin.Default()
+	router := gin.New()
+	router.Use(middleware.RequestLog(), middleware.Recover())
 	router.GET("/index", func(c *gin.Context) {
 		c.Data(http.StatusOK, "text/html; charset=utf-8", indexHTML)
 	})
@@ -101,20 +150,24 @@ func regRouter(sc *ServiceContext, cfg *config.Config) *gin.Engine {
 	return router
 }
 
-func initDb() *gorm.DB {
+func initDb() (*gorm.DB, error) {
 	if err := os.MkdirAll("data", 0755); err != nil {
-		panic(fmt.Errorf("创建数据目录失败: %w", err))
+		return nil, fmt.Errorf("创建数据目录失败: %w", err)
 	}
 
-	db, err := gorm.Open(sqlite.Open("data/blogs.db"), &gorm.Config{})
+	// 数据库错误由统一错误处理记录，避免默认 SQL 日志输出密码哈希等参数。
+	db, err := gorm.Open(sqlite.Open("data/blogs.db"), &gorm.Config{Logger: gormlogger.Default.LogMode(gormlogger.Silent)})
 	if err != nil {
-		panic(fmt.Errorf("连接数据库失败: %w", err))
+		return nil, fmt.Errorf("连接数据库失败: %w", err)
 	}
 
 	// 根据 User 结构自动创建或更新表
 	if err := db.AutoMigrate(&model.User{}, &model.Post{}, &model.Comment{}); err != nil {
-		panic(fmt.Errorf("创建数据表失败：: %w", err))
+		if sqlDB, closeErr := db.DB(); closeErr == nil {
+			sqlDB.Close()
+		}
+		return nil, fmt.Errorf("创建数据表失败: %w", err)
 	}
 
-	return db
+	return db, nil
 }
